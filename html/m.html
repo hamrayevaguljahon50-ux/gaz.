@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PetroFlow - Mobil Dispenser & Hisoblagich Terminali</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="m.css">
+  <link rel="stylesheet" href="ze.css">
+  <link rel="stylesheet" href="vs.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 1.4rem;">⛽</span>
+      <div>
+        <h1 style="font-size: 0.95rem; font-weight: 800; color: #fff; line-height: 1.1;">PetroFlow Handheld</h1>
+        <small style="font-size: 0.65rem; color: #38bdf8; font-weight: 600;">DISPENSER & METERS</small>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+      <select id="mobileLangSelect" class="language-select" style="padding: 0.25rem 0.4rem; font-size: 0.75rem;">
+        <option value="uz">UZ</option>
+        <option value="ru">RU</option>
+        <option value="en">EN</option>
+      </select>
+      <a href="m.index.html" class="btn btn-outline btn-xs" title="Bosh sahifa">📱</a>
+      <a href="index.html" class="btn btn-outline btn-xs" title="Desktop versiya">🖥️</a>
+    </div>
+  </header>
+
+  <!-- Mobile View Content -->
+  <main class="mobile-view-wrapper">
+
+    <!-- Active Tanks Quick Summary Bar -->
+    <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1rem;" id="mHorizontalTanks">
+      <!-- Dynamically filled with mini tank pills -->
+    </div>
+
+    <!-- Quick Dispenser Meter Logger Card -->
+    <div class="card" style="padding: 1rem; border-color: rgba(245, 158, 11, 0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <div>
+          <h2 style="font-size: 1.1rem; font-weight: 800; color: #fff;">📤 Chiqim / Sotuvni Qayd Etish</h2>
+          <p class="text-muted" style="font-size: 0.75rem;">Hisoblagich (schetchik) ko'rsatkichlarini kiritish</p>
+        </div>
+        <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">TRK / GRK</span>
+      </div>
+
+      <form id="handheldOutflowForm">
+        <!-- Fuel & Tank Selection -->
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" data-i18n="outflowTankLabel">Yoqilg'i Rezervuari</label>
+          <select id="hTankSelect" class="form-control" required></select>
+        </div>
+
+        <!-- Dispenser Pump # -->
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" data-i18n="outflowDispenserLabel">Kolonka / Pistolet #</label>
+          <div style="display: flex; gap: 0.4rem;">
+            <select id="hDispenserSelect" class="form-control" style="flex: 1;">
+              <option value="TRK #1 (Benzin AI-92)">TRK #1 (Benzin AI-92)</option>
+              <option value="TRK #2 (Benzin AI-95)">TRK #2 (Benzin AI-95)</option>
+              <option value="TRK #3 (Benzin AI-80)">TRK #3 (Benzin AI-80)</option>
+              <option value="GRK #1 (Propan LPG)">GRK #1 (Propan LPG)</option>
+              <option value="GRK #2 (Propan LPG)">GRK #2 (Propan LPG)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Meter Readings (Start & End) -->
+        <div style="background: rgba(14, 21, 38, 0.6); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0.75rem;">
+          <div style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; margin-bottom: 0.5rem;">
+            🔢 Hisoblagich Ko'rsatkichlari (Litr):
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-size: 0.72rem;" data-i18n="outflowMeterStartLabel">Boshlang'ich</label>
+              <input type="number" id="hMeterStart" class="form-control font-mono" step="any" placeholder="124500" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-size: 0.72rem;" data-i18n="outflowMeterEndLabel">Yakuniy</label>
+              <input type="number" id="hMeterEnd" class="form-control font-mono" step="any" placeholder="126800" required>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; background: #060a12; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Hisoblangan hajm:</span>
+            <span style="font-size: 1.15rem; font-weight: 800; color: #10b981;" id="hCalculatedVolDisplay">0.0 L</span>
+          </div>
+        </div>
+
+        <!-- Volume Manual Override -->
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" data-i18n="outflowVolumeLabel">Yakuniy Sotilgan Hajm (Litrda)</label>
+          <input type="number" id="hOutflowVolume" class="form-control font-mono" step="any" placeholder="0.0" required>
+        </div>
+
+        <!-- Operator Name -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" data-i18n="outflowOperatorLabel">Operator / Mas'ul kassir</label>
+          <input type="text" id="hOperator" class="form-control" value="Sardor Umarov" required>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.95rem; font-size: 1rem; background-color: #f59e0b; border-color: #f59e0b;">
+          📤 <span data-i18n="btnSubmitOutflow">Sotuvni Qayd Etish</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Quick Shift Balance & Gmail Dispatch Card -->
+    <div class="card" style="padding: 1rem; margin-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff;">📋 Smena Balansi va Gmail</h3>
+        <span class="badge badge-info" id="hShiftTimeBadge">Smena 1</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <div style="background: #0e1526; padding: 0.5rem; border-radius: 6px; text-align: center;">
+          <small class="text-muted" style="font-size: 0.7rem;">Kirim (Bugun):</small>
+          <div style="color: #10b981; font-weight: 800; font-size: 1rem;" id="hTodayIn">+0 L</div>
+        </div>
+        <div style="background: #0e1526; padding: 0.5rem; border-radius: 6px; text-align: center;">
+          <small class="text-muted" style="font-size: 0.7rem;">Chiqim (Bugun):</small>
+          <div style="color: #f59e0b; font-weight: 800; font-size: 1rem;" id="hTodayOut">-0 L</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <button class="btn btn-primary" style="padding: 0.75rem; width: 100%;" onclick="window.handheldApp.sendShiftGmail()">
+          ✉️ <span data-i18n="btnOpenGmailWeb">Smena hisobotini Gmail orqali yuborish</span>
+        </button>
+        <button class="btn btn-outline btn-sm" style="width: 100%;" onclick="window.handheldApp.copyShiftReport()">
+          📋 Hisobot matnini nusxalash
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Handheld Dispensing Log -->
+    <div class="card" style="padding: 1rem; margin-top: 1rem;">
+      <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
+        🕒 Oxirgi Sotuvlar Qaydlari
+      </h3>
+      <div id="hRecentList">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="m.index.html#status" class="bottom-nav-item">
+      <span class="bottom-nav-icon">📊</span>
+      <span data-i18n="navDashboard">Holat</span>
+    </a>
+    <a href="kirim.html" class="bottom-nav-item">
+      <span class="bottom-nav-icon">📥</span>
+      <span data-i18n="navInflows">Kirim</span>
+    </a>
+    <a href="m.html" class="bottom-nav-item active">
+      <span class="bottom-nav-icon">📤</span>
+      <span data-i18n="navOutflows">Hisoblagich</span>
+    </a>
+    <a href="m.index.html#gmail" class="bottom-nav-item">
+      <span class="bottom-nav-icon">✉️</span>
+      <span data-i18n="navGmail">Gmail</span>
+    </a>
+    <a href="index.html" class="bottom-nav-item">
+      <span class="bottom-nav-icon">🖥️</span>
+      <span>Desktop</span>
+    </a>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/translations.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/gmail.js"></script>
+
+  <script>
+    class HandheldApp {
+      constructor() {
+        this.currentLang = window.stationData ? window.stationData.settings.currentLang || "uz" : "uz";
+        this.gmailMgr = new GmailReportManager();
+      }
+
+      init() {
+        this.bindEvents();
+        this.setLanguage(this.currentLang);
+        this.renderAll();
+      }
+
+      bindEvents() {
+        const langSelect = document.getElementById("mobileLangSelect");
+        if (langSelect) {
+          langSelect.value = this.currentLang;
+          langSelect.addEventListener("change", (e) => this.setLanguage(e.target.value));
+        }
+
+        const mStart = document.getElementById("hMeterStart");
+        const mEnd = document.getElementById("hMeterEnd");
+        const mVol = document.getElementById("hOutflowVolume");
+        const disp = document.getElementById("hCalculatedVolDisplay");
+
+        const updateDiff = () => {
+          const s = parseFloat(mStart.value);
+          const e = parseFloat(mEnd.value);
+          if (!isNaN(s) && !isNaN(e) && e >= s) {
+            const diff = (e - s).toFixed(1);
+            mVol.value = diff;
+            if (disp) disp.innerText = `${diff} L`;
+          }
+        };
+
+        if (mStart && mEnd) {
+          mStart.addEventListener("input", updateDiff);
+          mEnd.addEventListener("input", updateDiff);
+        }
+
+        const form = document.getElementById("handheldOutflowForm");
+        if (form) {
+          form.addEventListener("submit", (e) => this.handleSubmit(e));
+        }
+      }
+
+      setLanguage(lang) {
+        if (!translations[lang]) lang = "uz";
+        this.currentLang = lang;
+        window.stationData.settings.currentLang = lang;
+        window.stationData.saveState();
+
+        const t = translations[lang];
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          const key = el.getAttribute("data-i18n");
+          if (t[key]) el.innerText = t[key];
+        });
+
+        this.populateTanks();
+        this.renderHorizontalTanks();
+        this.renderRecent();
+      }
+
+      populateTanks() {
+        const select = document.getElementById("hTankSelect");
+        if (!select) return;
+
+        const tanks = window.stationData.tanks;
+        const t = translations[this.currentLang];
+
+        select.innerHTML = tanks.map(tank => {
+          const fuelName = t[tank.fuelGrade] || tank.name;
+          const extra = tank.type === "propane" ? ` (Bosim: ${tank.pressure || 8.5} bar)` : "";
+          return `<option value="${tank.id}">${tank.name} - ${fuelName} [Qoldiq: ${tank.currentStock.toLocaleString()} L]${extra}</option>`;
+        }).join("");
+      }
+
+      renderHorizontalTanks() {
+        const wrap = document.getElementById("mHorizontalTanks");
+        if (!wrap) return;
+
+        const tanks = window.stationData.tanks;
+        const t = translations[this.currentLang];
+
+        wrap.innerHTML = tanks.map(tank => {
+          const pct = ((tank.currentStock / tank.capacity) * 100).toFixed(0);
+          const fuelName = t[tank.fuelGrade] || tank.name;
+          return `
+            <div style="min-width: 130px; background: #131b2e; border: 1px solid var(--border-color); border-left: 3px solid ${tank.color}; border-radius: 8px; padding: 0.5rem 0.6rem; flex-shrink: 0;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${tank.name}</div>
+              <div style="font-size: 0.68rem; color: ${tank.color};">${fuelName}</div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+                <span style="font-size: 0.85rem; font-weight: 800; color: #fff;">${(tank.currentStock/1000).toFixed(1)}k L</span>
+                <span style="font-size: 0.7rem; font-weight: 700; color: ${tank.color};">${pct}%</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      handleSubmit(e) {
+        e.preventDefault();
+        const tankId = document.getElementById("hTankSelect").value;
+        const vol = parseFloat(document.getElementById("hOutflowVolume").value);
+        const tank = window.stationData.getTank(tankId);
+
+        if (!tank) return alert("Rezervuarni tanlang.");
+        if (isNaN(vol) || vol <= 0) return alert("Hajmni kiriting.");
+
+        if (vol > tank.currentStock) {
+          if (window.stationAudio) window.stationAudio.playErrorSound();
+          return alert("Xatolik: Sotilgan hajm rezervuardagi qoldiqdan ko'p bo'lishi mumkin emas!");
+        }
+
+        try {
+          window.stationData.recordOutflow({
+            tankId: tankId,
+            volume: vol,
+            dispenser: document.getElementById("hDispenserSelect").value,
+            meterStart: document.getElementById("hMeterStart").value,
+            meterEnd: document.getElementById("hMeterEnd").value,
+            operator: document.getElementById("hOperator").value
+          });
+
+          if (window.stationAudio) window.stationAudio.playSuccessSound();
+          alert("Sotuv muvaffaqiyatli saqlandi!");
+
+          document.getElementById("hMeterStart").value = document.getElementById("hMeterEnd").value;
+          document.getElementById("hMeterEnd").value = "";
+          document.getElementById("hOutflowVolume").value = "";
+          document.getElementById("hCalculatedVolDisplay").innerText = "0.0 L";
+
+          this.renderAll();
+        } catch (err) {
+          alert("Xatolik: " + err.message);
+        }
+      }
+
+      renderAll() {
+        this.populateTanks();
+        this.renderHorizontalTanks();
+        this.renderRecent();
+
+        const totals = window.stationData.getTotals();
+        const elIn = document.getElementById("hTodayIn");
+        const elOut = document.getElementById("hTodayOut");
+        if (elIn) elIn.innerText = `+${totals.todayDeliveries.toLocaleString()} L`;
+        if (elOut) elOut.innerText = `-${totals.todaySales.toLocaleString()} L`;
+      }
+
+      renderRecent() {
+        const list = document.getElementById("hRecentList");
+        if (!list) return;
+
+        const outflows = window.stationData.outflows.slice(0, 4);
+        const t = translations[this.currentLang];
+
+        if (outflows.length === 0) {
+          list.innerHTML = `<p class="text-muted" style="font-size: 0.8rem;">Yozuvlar yo'q.</p>`;
+          return;
+        }
+
+        list.innerHTML = outflows.map(o => {
+          const tank = window.stationData.getTank(o.tankId);
+          const fuelName = tank ? (t[tank.fuelGrade] || tank.name) : o.fuelType;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid rgba(35, 48, 75, 0.4); font-size: 0.78rem;">
+              <div>
+                <strong style="color: #fff;">${o.dispenser}</strong>
+                <div class="text-muted" style="font-size: 0.7rem;">${fuelName} &bull; ${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="color: #f59e0b; font-weight: 700;">-${o.volume.toLocaleString()} L</span>
+                <div style="font-size: 0.68rem; color: #64748b;">${o.operator}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      sendShiftGmail() {
+        this.gmailMgr.openGmailWeb("shift");
+      }
+
+      copyShiftReport() {
+        this.gmailMgr.copyReportToClipboard("shift");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.handheldApp = new HandheldApp();
+      window.handheldApp.init();
+    });
+  </script>
+</body>
+</html>

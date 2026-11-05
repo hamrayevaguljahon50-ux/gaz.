@@ -1,0 +1,90 @@
+/* PetroFlow Visual Studio Dark & Industrial Forecourt Theme (vs.css) */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Segoe+UI:wght@400;600;700&display=swap');
+
+:root {
+  --vs-bg: #1e1e1e;
+  --vs-sidebar: #252526;
+  --vs-editor: #181818;
+  --vs-tab-active: #1e1e1e;
+  --vs-tab-inactive: #2d2d2d;
+  --vs-border: #3c3c3c;
+  --vs-blue: #007acc;
+  --vs-blue-hover: #0098ff;
+  --vs-green: #4ec9b0;
+  --vs-yellow: #dcdcaa;
+  --vs-orange: #ce9178;
+  --vs-cyan: #4fc1ff;
+  --vs-red: #f14c4c;
+  --vs-text: #d4d4d4;
+  --vs-text-light: #ffffff;
+  --vs-text-muted: #858585;
+  --vs-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --vs-mono: 'JetBrains Mono', Consolas, monospace;
+}
+
+body.theme-vs {
+  background-color: var(--vs-bg);
+  color: var(--vs-text);
+  font-family: var(--vs-font);
+}
+
+.vs-header {
+  background-color: #323233;
+  border-bottom: 1px solid var(--vs-border);
+  padding: 0.5rem 1rem;
+}
+
+.vs-terminal-box {
+  background-color: var(--vs-editor);
+  border: 1px solid var(--vs-border);
+  border-radius: 4px;
+  font-family: var(--vs-mono);
+  color: #9cdcfe;
+  padding: 1rem;
+}
+
+.vs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--vs-mono);
+  font-size: 0.85rem;
+}
+
+.vs-table th {
+  background-color: var(--vs-sidebar);
+  color: #569cd6;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--vs-border);
+  text-align: left;
+}
+
+.vs-table td {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--vs-border);
+}
+
+.vs-badge-fuel {
+  font-family: var(--vs-mono);
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  border: 1px solid var(--vs-border);
+}
+
+.vs-btn {
+  background-color: var(--vs-blue);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: var(--vs-font);
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.vs-btn:hover {
+  background-color: var(--vs-blue-hover);
+}
+

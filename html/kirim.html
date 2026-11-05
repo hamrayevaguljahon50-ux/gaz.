@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetroFlow - Yoqilg'i Qabul Qilish (Kirim / Inflows)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="m.css">
+  <link rel="stylesheet" href="ze.css">
+  <link rel="stylesheet" href="vs.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ========================================================================
+       Top Navigation Bar
+       ======================================================================== -->
+  <nav class="navbar">
+    <div class="nav-brand-container">
+      <span class="brand-icon">⛽</span>
+      <div class="brand-text">
+        <h1 data-i18n="navBrand">PetroFlow Station Monitor <span class="brand-badge" data-i18n="stationStatus">Online</span></h1>
+        <p data-i18n="inflowsTitle">Yoqilg'i Qabul Qilish va Kirimlar</p>
+      </div>
+    </div>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
+
+    <ul class="nav-links" id="navLinksMenu">
+      <li>
+        <a href="index.html#dashboard" class="nav-link">
+          <span>📊</span> <span data-i18n="navDashboard">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="kirim.html" class="nav-link active">
+          <span>📥</span> <span data-i18n="navInflows">Kirim (Yetkazib berish)</span>
+        </a>
+      </li>
+      <li>
+        <a href="index.html#outflows" class="nav-link">
+          <span>📤</span> <span data-i18n="navOutflows">Chiqim (Sotuv)</span>
+        </a>
+      </li>
+      <li>
+        <a href="index.html#tanks" class="nav-link">
+          <span>🛢️</span> <span data-i18n="navTanks">Rezervuarlar</span>
+        </a>
+      </li>
+      <li>
+        <a href="m.index.html" class="nav-link">
+          <span>📱</span> <span>Mobil Versiya</span>
+        </a>
+      </li>
+      <li>
+        <a href="index.html#gmail" class="nav-link">
+          <span>✉️</span> <span data-i18n="navGmail">Gmail Hisoboti</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="nav-actions">
+      <!-- Language Picker -->
+      <div class="language-picker-wrap">
+        <select class="language-select" id="languageSelect">
+          <option value="uz">🇺🇿 O'zbekcha</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+      <button class="btn btn-outline btn-xs" onclick="window.kirimApp.sendGmailInflowReport()">
+        ✉️ <span data-i18n="quickGmailBtn">Gmail Hisoboti</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       Main Content
+       ======================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- Header Section -->
+    <div class="section-header">
+      <div>
+        <h2 data-i18n="inflowsTitle">Yoqilg'i Qabul Qilish va Kirimlar (Inflows)</h2>
+        <p data-i18n="inflowsSubtitle">Avtosisterna va gazovozlardan benzin hamda suyultirilgan gaz (propan) qabul qilish</p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="index.html" class="btn btn-outline btn-sm">
+          ← <span data-i18n="navDashboard">Boshqaruv paneliga qaytish</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Live Available Ullage / Free Space Overview for Discharge -->
+    <div class="section-header" style="margin-top: 1rem; margin-bottom: 0.75rem;">
+      <h3 style="font-size: 1.1rem; color: #fff;">
+        🛢️ Rezervuarlardagi Bo'sh Joy (Suyuqlik qabul qilish imkoniyati):
+      </h3>
+    </div>
+
+    <div class="kpi-grid" id="kirimUllageGrid">
+      <!-- Dynamically filled with tank free space and max intake capacity -->
+    </div>
+
+    <!-- Main Inflow Registration Card -->
+    <div class="card" style="margin-top: 1.5rem;">
+      <h3 class="card-title" data-i18n="recordInflowTitle">Yangi Kirimni Qayd Qilish (Avtosisterna / Gazovoz)</h3>
+      <p class="card-subtitle">Hujjatlar va metrologik ko'rsatkichlarni to'liq kiritib, rezervuarga yoqilg'i qo'shish</p>
+
+      <form id="formKirimDelivery">
+        <div class="form-grid">
+          <!-- Target Tank -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowTankLabel">Qabul Qiluvchi Rezervuar</label>
+            <select class="form-control" id="kirimTankSelect" required>
+              <!-- Filled dynamically -->
+            </select>
+          </div>
+
+          <!-- Delivered Volume in Liters -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowVolumeLabel">Qabul qilingan hajm (Litrda)</label>
+            <input type="number" class="form-control" id="kirimVolume" min="1" step="any" placeholder="Masalan: 12000" required>
+            <small id="ullageNotice" class="text-muted" style="font-size: 0.75rem; margin-top: 2px;"></small>
+          </div>
+
+          <!-- LPG Specific Fields -->
+          <div class="form-group kirim-lpg-field" style="display: none;">
+            <label class="form-label" data-i18n="inflowPressureLabel">Gazovozdagi Bosim (bar)</label>
+            <input type="number" class="form-control" id="kirimPressure" min="0" max="25" step="0.1" placeholder="Masalan: 9.2">
+          </div>
+
+          <div class="form-group kirim-lpg-field" style="display: none;">
+            <label class="form-label" data-i18n="inflowLpgMassLabel">Propan Massasi (kg - ixtiyoriy)</label>
+            <input type="number" class="form-control" id="kirimMass" min="0" step="any" placeholder="Masalan: 6480">
+          </div>
+
+          <!-- Temperature & Density -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowTempLabel">Yoqilg'i Harorati (°C)</label>
+            <input type="number" class="form-control" id="kirimTemp" step="0.1" value="15.0">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Yoqilg'i Zichligi (kg/m³ / Density)</label>
+            <input type="number" class="form-control" id="kirimDensity" step="0.001" placeholder="Benzin: 0.745, Propan: 0.540">
+          </div>
+
+          <!-- Supplier / Refinery -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowSupplierLabel">Yetkazib beruvchi / Zavod (NPZ)</label>
+            <input type="text" class="form-control" id="kirimSupplier" placeholder="Farg'ona NQIZ, Buxoro NQIZ, Muborak GIZ..." required>
+          </div>
+
+          <!-- TTN / Invoice # -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowInvoiceLabel">Yuk xati / TTN / Tovar-transport hujjati #</label>
+            <input type="text" class="form-control" id="kirimInvoice" placeholder="TTN-884920" required>
+          </div>
+
+          <!-- Tanker Truck License Plate -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowTruckLabel">Avtosisterna Davlat Raqami</label>
+            <input type="text" class="form-control" id="kirimTruck" placeholder="01 742 AAA" required>
+          </div>
+
+          <!-- Operator / Receiving attendant -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowOperatorLabel">Qabul Qilgan Mas'ul Shaxs</label>
+            <input type="text" class="form-control" id="kirimOperator" placeholder="Bobur Aliyev" value="Bobur Aliyev" required>
+          </div>
+
+          <!-- Date & Time -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="inflowDateLabel">Sana va Vaqt</label>
+            <input type="datetime-local" class="form-control" id="kirimDate" required>
+          </div>
+
+          <!-- Notes / Lab Certificate -->
+          <div class="form-group full-width">
+            <label class="form-label" data-i18n="inflowNotesLabel">Sifat pasporti / Laboratoriya xulosasi / Izohlar</label>
+            <input type="text" class="form-control" id="kirimNotes" placeholder="Yevro-5 sifat sertifikati #104, plombalar butunligi tekshirildi">
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+            📥 <span data-i18n="btnSubmitInflow">Kirimni Saqlash va Rezervuarga Qo'shish</span>
+          </button>
+          <button type="reset" class="btn btn-outline" data-i18n="btnReset">Tozalash</button>
+          <button type="button" class="btn btn-outline" onclick="window.kirimApp.sendGmailInflowReport()">
+            ✉️ Yuk xatini Gmail orqali yuborish
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- History Log Table -->
+    <div class="card">
+      <div class="table-toolbar">
+        <div>
+          <h3 class="card-title" data-i18n="inflowHistoryTitle">Yetkazib Berishlar Tarixi Jurnali</h3>
+          <p class="card-subtitle">Barcha qabul qilingan benzin va gaz yuk xatlari qaydlari</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <div class="search-input-wrap">
+            <input type="text" id="kirimSearchInput" class="form-control" data-i18n-placeholder="searchPlaceholder" placeholder="Yuk xati, zavod, raqam bo'yicha qidirish...">
+          </div>
+          <select id="kirimFuelFilter" class="form-control" style="width: auto;">
+            <option value="all" data-i18n="filterAllFuels">Barcha yoqilg'ilar</option>
+            <option value="gasoline" data-i18n="filterGasolineOnly">Faqat benzin</option>
+            <option value="propane" data-i18n="filterPropaneOnly">Faqat propan (SNG)</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="window.stationData.exportCSV('inflows')">
+            📥 <span data-i18n="btnExportCSV">CSV Eksport</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th data-i18n="colDateTime">Sana va Vaqt</th>
+              <th data-i18n="colFuelType">Yoqilg'i Turi</th>
+              <th data-i18n="colTank">Rezervuar</th>
+              <th data-i18n="colVolume">Qabul Qilingan (L)</th>
+              <th data-i18n="colSupplier">Yetkazib Beruvchi</th>
+              <th data-i18n="colInvoice">Yuk Xati #</th>
+              <th data-i18n="colTruck">Avtoraqam</th>
+              <th data-i18n="colOperator">Mas'ul</th>
+              <th data-i18n="colActions">Amallar</th>
+            </tr>
+          </thead>
+          <tbody id="kirimTableBody">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>PetroFlow - Yoqilg'i va Gaz Kirim Terminali &bull; Multilingual Gasoline & Propane Reception &bull; JavaScript, HTML, CSS & Python</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/translations.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/gmail.js"></script>
+  
+  <script>
+    class KirimApp {
+      constructor() {
+        this.currentLang = window.stationData ? window.stationData.settings.currentLang || "uz" : "uz";
+      }
+
+      init() {
+        this.bindEvents();
+        this.setLanguage(this.currentLang);
+        this.renderUllageCards();
+        this.populateTanks();
+        this.renderTable();
+        this.resetDate();
+      }
+
+      resetDate() {
+        const now = new Date();
+        const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        const d = document.getElementById("kirimDate");
+        if (d) d.value = localIso;
+      }
+
+      bindEvents() {
+        const langSelect = document.getElementById("languageSelect");
+        if (langSelect) {
+          langSelect.value = this.currentLang;
+          langSelect.addEventListener("change", (e) => this.setLanguage(e.target.value));
+        }
+
+        const tankSelect = document.getElementById("kirimTankSelect");
+        if (tankSelect) {
+          tankSelect.addEventListener("change", () => this.onTankChanged());
+        }
+
+        const volInput = document.getElementById("kirimVolume");
+        if (volInput) {
+          volInput.addEventListener("input", () => this.checkVolumeUllage());
+        }
+
+        const form = document.getElementById("formKirimDelivery");
+        if (form) {
+          form.addEventListener("submit", (e) => this.handleSubmit(e));
+        }
+
+        const search = document.getElementById("kirimSearchInput");
+        const filter = document.getElementById("kirimFuelFilter");
+        if (search) search.addEventListener("input", () => this.renderTable());
+        if (filter) filter.addEventListener("change", () => this.renderTable());
+
+        const mobileBtn = document.getElementById("mobileMenuBtn");
+        const navMenu = document.getElementById("navLinksMenu");
+        if (mobileBtn && navMenu) {
+          mobileBtn.addEventListener("click", () => navMenu.classList.toggle("open"));
+        }
+      }
+
+      setLanguage(lang) {
+        if (!translations[lang]) lang = "uz";
+        this.currentLang = lang;
+        window.stationData.settings.currentLang = lang;
+        window.stationData.saveState();
+
+        const t = translations[lang];
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          const key = el.getAttribute("data-i18n");
+          if (t[key]) el.innerText = t[key];
+        });
+
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+          const key = el.getAttribute("data-i18n-placeholder");
+          if (t[key]) el.placeholder = t[key];
+        });
+
+        this.populateTanks();
+        this.renderUllageCards();
+        this.renderTable();
+      }
+
+      populateTanks() {
+        const select = document.getElementById("kirimTankSelect");
+        if (!select) return;
+
+        const tanks = window.stationData.tanks;
+        const t = translations[this.currentLang];
+
+        select.innerHTML = tanks.map(tank => {
+          const free = Math.max(0, tank.capacity - tank.currentStock);
+          const fuelName = t[tank.fuelGrade] || tank.name;
+          return `<option value="${tank.id}">${tank.name} - ${fuelName} (Bo'sh joy: ${free.toLocaleString()} L)</option>`;
+        }).join("");
+
+        this.onTankChanged();
+      }
+
+      onTankChanged() {
+        const select = document.getElementById("kirimTankSelect");
+        if (!select) return;
+
+        const tank = window.stationData.getTank(select.value);
+        const lpgFields = document.querySelectorAll(".kirim-lpg-field");
+        lpgFields.forEach(f => {
+          f.style.display = (tank && tank.type === "propane") ? "block" : "none";
+        });
+
+        this.checkVolumeUllage();
+      }
+
+      checkVolumeUllage() {
+        const select = document.getElementById("kirimTankSelect");
+        const volInput = document.getElementById("kirimVolume");
+        const notice = document.getElementById("ullageNotice");
+        if (!select || !volInput || !notice) return;
+
+        const tank = window.stationData.getTank(select.value);
+        if (!tank) return;
+
+        const free = Math.max(0, tank.capacity - tank.currentStock);
+        const entered = parseFloat(volInput.value) || 0;
+
+        if (entered > free) {
+          notice.innerHTML = `<span style="color: #ef4444; font-weight: bold;">⚠️ DIQQAT: Sig'imdan oshib ketdi! Bo'sh joy faqat: ${free.toLocaleString()} Litr!</span>`;
+          if (window.stationAudio) window.stationAudio.playErrorSound();
+        } else {
+          notice.innerHTML = `<span style="color: #10b981;">✓ Qabul qilish xavfsiz. Rezervuarda bo'sh joy: ${free.toLocaleString()} L</span>`;
+        }
+      }
+
+      renderUllageCards() {
+        const container = document.getElementById("kirimUllageGrid");
+        if (!container) return;
+
+        const tanks = window.stationData.tanks;
+        const t = translations[this.currentLang];
+
+        container.innerHTML = tanks.map(tank => {
+          const free = Math.max(0, tank.capacity - tank.currentStock);
+          const pct = ((tank.currentStock / tank.capacity) * 100).toFixed(1);
+          const fuelName = t[tank.fuelGrade] || tank.name;
+          const isLpg = tank.type === "propane";
+
+          return `
+            <div class="kpi-card" style="border-left: 4px solid ${tank.color};">
+              <div class="kpi-title">${tank.name} - ${fuelName}</div>
+              <div class="kpi-value" style="color: ${tank.color}; font-size: 1.35rem;">
+                ${free.toLocaleString()} <span style="font-size: 0.8rem; color: #94a3b8;">L Bo'sh</span>
+              </div>
+              <div class="kpi-sub">
+                Hozirgi qoldiq: ${tank.currentStock.toLocaleString()} L (${pct}%)
+                ${isLpg ? `<br><span style="color: #38bdf8;">⚡ Bosim: ${tank.pressure || 8.5} bar</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      handleSubmit(e) {
+        e.preventDefault();
+        const t = translations[this.currentLang];
+        const tankId = document.getElementById("kirimTankSelect").value;
+        const volume = parseFloat(document.getElementById("kirimVolume").value);
+        const tank = window.stationData.getTank(tankId);
+
+        if (!tank) return alert("Rezervuarni tanlang.");
+        if (isNaN(volume) || volume <= 0) return alert("Iltimos, hajmni to'g'ri kiriting.");
+
+        if (tank.currentStock + volume > tank.capacity) {
+          if (!confirm("Diqqat! Kiritilgan hajm rezervuar sig'imidan ortiq. Davom ettirasizmi?")) {
+            return;
+          }
+        }
+
+        try {
+          window.stationData.recordInflow({
+            tankId: tankId,
+            volume: volume,
+            massKg: document.getElementById("kirimMass")?.value,
+            pressure: document.getElementById("kirimPressure")?.value,
+            temperature: document.getElementById("kirimTemp")?.value,
+            supplier: document.getElementById("kirimSupplier")?.value,
+            invoiceNo: document.getElementById("kirimInvoice")?.value,
+            truckPlate: document.getElementById("kirimTruck")?.value,
+            operator: document.getElementById("kirimOperator")?.value,
+            date: document.getElementById("kirimDate")?.value,
+            notes: document.getElementById("kirimNotes")?.value
+          });
+
+          if (window.stationAudio) window.stationAudio.playSuccessSound();
+
+          alert(t.alertSuccessInflow || "Kirim muvaffaqiyatli saqlandi!");
+          document.getElementById("formKirimDelivery").reset();
+          this.resetDate();
+          this.populateTanks();
+          this.renderUllageCards();
+          this.renderTable();
+        } catch (err) {
+          alert("Xatolik: " + err.message);
+        }
+      }
+
+      renderTable() {
+        const tbody = document.getElementById("kirimTableBody");
+        if (!tbody) return;
+
+        const search = (document.getElementById("kirimSearchInput")?.value || "").toLowerCase();
+        const filter = document.getElementById("kirimFuelFilter")?.value || "all";
+        const t = translations[this.currentLang];
+
+        let items = window.stationData.inflows;
+
+        if (filter !== "all") {
+          items = items.filter(i => {
+            const tank = window.stationData.getTank(i.tankId);
+            if (filter === "gasoline") return tank && tank.type === "gasoline";
+            if (filter === "propane") return tank && tank.type === "propane";
+            return true;
+          });
+        }
+
+        if (search) {
+          items = items.filter(i =>
+            (i.supplier && i.supplier.toLowerCase().includes(search)) ||
+            (i.invoiceNo && i.invoiceNo.toLowerCase().includes(search)) ||
+            (i.truckPlate && i.truckPlate.toLowerCase().includes(search)) ||
+            (i.operator && i.operator.toLowerCase().includes(search)) ||
+            (i.notes && i.notes.toLowerCase().includes(search))
+          );
+        }
+
+        if (items.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">${t.noRecordsFound}</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = items.map(item => {
+          const tank = window.stationData.getTank(item.tankId);
+          const fuelName = tank ? (t[tank.fuelGrade] || tank.name) : item.fuelType;
+          const isLpg = tank && tank.type === "propane";
+          const extra = isLpg && item.pressure ? `<span class="badge badge-info">${item.pressure} bar</span>` : "";
+
+          return `
+            <tr>
+              <td>
+                <strong>${new Date(item.date).toLocaleDateString()}</strong><br>
+                <small class="text-muted">${new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+              </td>
+              <td>
+                <span class="badge" style="background-color: ${tank ? tank.color : '#64748b'}22; color: ${tank ? tank.color : '#fff'}; border: 1px solid ${tank ? tank.color : '#64748b'}66;">
+                  ${fuelName}
+                </span>
+              </td>
+              <td>${tank ? tank.name : item.tankId}</td>
+              <td><strong class="text-emerald">+${item.volume.toLocaleString()} L</strong> ${extra}</td>
+              <td>${item.supplier || '-'}</td>
+              <td><span class="invoice-tag">${item.invoiceNo || '-'}</span></td>
+              <td><code>${item.truckPlate || '-'}</code></td>
+              <td>${item.operator}</td>
+              <td>
+                <button class="btn btn-xs btn-danger" onclick="window.kirimApp.deleteRecord('${item.id}')">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      deleteRecord(id) {
+        const t = translations[this.currentLang];
+        if (confirm(t.confirmDelete || "Ushbu yozuvni o'chirishga ishonchingiz komilmi?")) {
+          window.stationData.deleteInflow(id);
+          this.populateTanks();
+          this.renderUllageCards();
+          this.renderTable();
+        }
+      }
+
+      sendGmailInflowReport() {
+        const data = window.stationData;
+        const lastInflow = data.inflows[0];
+        const settings = data.settings;
+        const to = encodeURIComponent(settings.managerEmail || "");
+        const cc = encodeURIComponent(settings.supervisorEmail || "");
+
+        let subj = `[PetroFlow Kirim] Yangi yoqilg'i qabul qilindi - ${settings.stationCode}`;
+        let body = `YANGI YOQILG'I QABUL QILINDI (KIRIM DALOLATNOMASI)\n`;
+        body += `==============================================\n`;
+        body += `Shoxobcha: ${settings.stationName} (${settings.stationCode})\n`;
+        body += `Sana: ${new Date().toLocaleString()}\n`;
+        body += `==============================================\n\n`;
+
+        if (lastInflow) {
+          const tank = data.getTank(lastInflow.tankId);
+          body += `1. QABUL QILINGAN YOQILG'I:\n`;
+          body += `   • Rezervuar: ${tank ? tank.name : lastInflow.tankId}\n`;
+          body += `   • Yoqilg'i turi: ${lastInflow.fuelType}\n`;
+          body += `   • Qabul qilingan hajm: ${lastInflow.volume.toLocaleString()} Litr\n`;
+          if (lastInflow.pressure) body += `   • Gazovozdagi bosim: ${lastInflow.pressure} bar\n`;
+          body += `   • Yetkazib beruvchi zavod: ${lastInflow.supplier}\n`;
+          body += `   • Yuk xati (TTN) #: ${lastInflow.invoiceNo}\n`;
+          body += `   • Sisterna davlat raqami: ${lastInflow.truckPlate}\n`;
+          body += `   • Qabul qilgan mas'ul shaxs: ${lastInflow.operator}\n`;
+          body += `   • Izohlar / Pasport: ${lastInflow.notes || 'Me\'yorda'}\n\n`;
+        }
+
+        body += `2. AMALDAGI UMUMIY QOLDIQ:\n`;
+        data.tanks.forEach(t => {
+          body += `   • ${t.name}: ${t.currentStock.toLocaleString()} L / ${t.capacity.toLocaleString()} L (${((t.currentStock/t.capacity)*100).toFixed(1)}%)\n`;
+        });
+
+        body += `\n--\nPetroFlow Avtomatlashtirilgan Nazorat Tizimi`;
+
+        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}${settings.supervisorEmail ? '&cc=' + cc : ''}`;
+        window.open(url, "_blank");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.kirimApp = new KirimApp();
+      window.kirimApp.init();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+/* PetroFlow Zen & Neon Cyber Accents Stylesheet (ze.css) */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --ze-bg: #07090e;
+  --ze-surface: rgba(18, 24, 38, 0.7);
+  --ze-card: rgba(22, 30, 48, 0.65);
+  --ze-border: rgba(255, 255, 255, 0.08);
+  --ze-border-glow: rgba(56, 189, 248, 0.4);
+  --ze-neon-amber: #f59e0b;
+  --ze-neon-green: #10b981;
+  --ze-neon-cyan: #06b6d4;
+  --ze-neon-pink: #ec4899;
+  --ze-text: #f8fafc;
+  --ze-text-dim: #94a3b8;
+  --ze-font: 'Space Grotesk', -apple-system, sans-serif;
+}
+
+body.theme-zen {
+  background: radial-gradient(circle at 50% 0%, #111c35 0%, #07090e 75%);
+  color: var(--ze-text);
+  font-family: var(--ze-font);
+}
+
+.ze-glass {
+  background: var(--ze-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--ze-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ze-glass:hover {
+  border-color: var(--ze-border-glow);
+  box-shadow: 0 10px 40px 0 rgba(2, 132, 199, 0.2);
+}
+
+.ze-glow-cyan {
+  text-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+  color: var(--ze-neon-cyan);
+}
+
+.ze-glow-amber {
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  color: var(--ze-neon-amber);
+}
+
+.ze-glow-green {
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  color: var(--ze-neon-green);
+}
+
+.ze-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ze-pill-lpg {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #22d3ee;
+}
+
+.ze-pill-gasoline {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.ze-tank-pulse {
+  animation: zePulse 3s infinite alternate;
+}
+
+@keyframes zePulse {
+  0% { filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.2)); }
+  100% { filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.5)); }
+}
+

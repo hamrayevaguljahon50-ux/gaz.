@@ -1,0 +1,230 @@
+/* PetroFlow Mobile Forecourt & Handheld Terminal Stylesheet (m.css) */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --m-bg-body: #0a0e17;
+  --m-bg-surface: #121929;
+  --m-bg-card: #182238;
+  --m-bg-input: #0b1120;
+  --m-border: #233352;
+  --m-primary: #0284c7;
+  --m-amber: #f59e0b;
+  --m-emerald: #10b981;
+  --m-cyan: #06b6d4;
+  --m-rose: #f43f5e;
+  --m-text: #f8fafc;
+  --m-text-dim: #94a3b8;
+  --m-font: 'Inter', -apple-system, sans-serif;
+  --m-mono: 'JetBrains Mono', monospace;
+  --touch-min: 48px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--m-font);
+  background-color: var(--m-bg-body);
+  color: var(--m-text);
+  line-height: 1.4;
+  min-height: 100vh;
+  padding-bottom: 75px;
+}
+
+/* Mobile Header */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(18, 25, 41, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--m-border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Fixed Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: rgba(10, 14, 23, 0.96);
+  border-top: 1px solid var(--m-border);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1000;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--m-text-dim);
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  min-width: 58px;
+  min-height: var(--touch-min);
+  transition: all 0.2s ease;
+}
+
+.bottom-nav-item:active,
+.bottom-nav-item.active {
+  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.12);
+}
+
+.bottom-nav-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+/* Mobile Wrapper & Touch Cards */
+.mobile-view-wrapper {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.mobile-card {
+  background: var(--m-bg-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 14px;
+  padding: 1.15rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Mobile Tank Level Card */
+.mobile-tank-card {
+  background: var(--m-bg-card);
+  border: 1px solid var(--m-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.mobile-tank-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-progress-wrap {
+  width: 100%;
+  height: 14px;
+  background: #060912;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--m-border);
+  margin: 0.4rem 0;
+}
+
+.mobile-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease-out;
+}
+
+/* Mobile Touch Buttons */
+.mobile-touch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: var(--touch-min);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.mobile-touch-btn:active {
+  transform: scale(0.98);
+}
+
+.btn-m-primary {
+  background-color: var(--m-primary);
+  color: #fff;
+}
+
+.btn-m-amber {
+  background-color: var(--m-amber);
+  color: #111827;
+}
+
+.btn-m-emerald {
+  background-color: var(--m-emerald);
+  color: #fff;
+}
+
+.btn-m-outline {
+  background: transparent;
+  border-color: var(--m-border);
+  color: var(--m-text);
+}
+
+/* Touch Input Controls */
+.mobile-input {
+  background-color: var(--m-bg-input);
+  border: 1px solid var(--m-border);
+  color: #fff;
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 8px;
+  width: 100%;
+  outline: none;
+  min-height: var(--touch-min);
+}
+
+.mobile-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Status Badges */
+.m-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.m-badge-success { background: rgba(16, 185, 129, 0.2); color: var(--m-emerald); }
+.m-badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--m-amber); }
+.m-badge-danger { background: rgba(244, 63, 94, 0.2); color: var(--m-rose); }
+

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetroFlow - Fuel & Gas Station Monitor</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Optional Pyodide CDN for native WebAssembly Python in browser -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js" async></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       Top Navigation Bar
+       ======================================================================== -->
+  <nav class="navbar">
+    <div class="nav-brand-container">
+      <span class="brand-icon">⛽</span>
+      <div class="brand-text">
+        <h1 data-i18n="navBrand">PetroFlow Station Monitor <span class="brand-badge" data-i18n="stationStatus">Online</span></h1>
+        <p data-i18n="navSubtitle">Fuel & Gas Management System</p>
+      </div>
+    </div>
+
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
+
+    <ul class="nav-links" id="navLinksMenu">
+      <li>
+        <a href="#dashboard" class="nav-link active" data-section="dashboard">
+          <span>📊</span> <span data-i18n="navDashboard">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#inflows" class="nav-link" data-section="inflows">
+          <span>📥</span> <span data-i18n="navInflows">Inflows (Deliveries)</span>
+        </a>
+      </li>
+      <li>
+        <a href="#outflows" class="nav-link" data-section="outflows">
+          <span>📤</span> <span data-i18n="navOutflows">Outflows (Sales)</span>
+        </a>
+      </li>
+      <li>
+        <a href="#tanks" class="nav-link" data-section="tanks">
+          <span>🛢️</span> <span data-i18n="navTanks">Tanks & Calibration</span>
+        </a>
+      </li>
+      <li>
+        <a href="#analytics" class="nav-link" data-section="analytics">
+          <span>📈</span> <span data-i18n="navAnalytics">Analytics & Reports</span>
+        </a>
+      </li>
+      <li>
+        <a href="#python" class="nav-link" data-section="python">
+          <span>🐍</span> <span data-i18n="navPython">Python Engine</span>
+        </a>
+      </li>
+      <li>
+        <a href="#gmail" class="nav-link" data-section="gmail">
+          <span>✉️</span> <span data-i18n="navGmail">Gmail Reports</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="nav-actions">
+      <!-- Language Picker -->
+      <div class="language-picker-wrap">
+        <select class="language-select" id="languageSelect" aria-label="Select Language">
+          <option value="en">🇬🇧 English</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="uz">🇺🇿 O'zbekcha</option>
+        </select>
+      </div>
+      <!-- Quick Action: Gmail -->
+      <button class="btn btn-outline btn-xs" onclick="window.stationApp.navigateTo('gmail')">
+        ✉️ <span data-i18n="quickGmailBtn">Gmail Report</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       Main Content Area
+       ======================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- ======================================================================
+         SECTION 1: DASHBOARD
+         ====================================================================== -->
+    <section id="section-dashboard" class="app-section active">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="navDashboard">Dashboard</h2>
+          <p data-i18n="tanksSubheader">Real-time stock volume, liquid levels, and pressure indicators</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-primary" onclick="window.stationApp.navigateTo('inflows')">
+            <span data-i18n="quickInflowBtn">+ Record Delivery</span>
+          </button>
+          <button class="btn btn-outline" onclick="window.stationApp.navigateTo('outflows')">
+            <span data-i18n="quickOutflowBtn">- Record Sale</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title" data-i18n="kpiTotalFuel">Total Fuel in Stock</div>
+          <div class="kpi-value" id="kpiTotalFuelVal">0 L</div>
+          <div class="kpi-sub">Gasoline + LPG Combined</div>
+        </div>
+
+        <div class="kpi-card kpi-gasoline">
+          <div class="kpi-title" data-i18n="kpiGasolineStock">Total Gasoline Stock</div>
+          <div class="kpi-value" id="kpiGasolineStockVal">0 L</div>
+          <div class="kpi-sub">AI-92, AI-95, AI-80 Tanks</div>
+        </div>
+
+        <div class="kpi-card kpi-propane">
+          <div class="kpi-title" data-i18n="kpiPropaneStock">Propane Gas (LPG)</div>
+          <div class="kpi-value" id="kpiPropaneStockVal">0 L</div>
+          <div class="kpi-sub">Liquefied Gas Reserves</div>
+        </div>
+
+        <div class="kpi-card kpi-inflows">
+          <div class="kpi-title" data-i18n="kpiTodayDeliveries">Today's Deliveries</div>
+          <div class="kpi-value text-emerald" id="kpiTodayDeliveriesVal">+0 L</div>
+          <div class="kpi-sub">Tanker Inflows</div>
+        </div>
+
+        <div class="kpi-card kpi-outflows">
+          <div class="kpi-title" data-i18n="kpiTodaySales">Today's Dispensed</div>
+          <div class="kpi-value text-amber" id="kpiTodaySalesVal">-0 L</div>
+          <div class="kpi-sub">Customer Dispensing</div>
+        </div>
+
+        <div class="kpi-card kpi-alerts">
+          <div class="kpi-title" data-i18n="kpiActiveAlerts">Fuel Alerts</div>
+          <div class="kpi-value" id="kpiActiveAlertsVal">
+            <span class="badge badge-success" data-i18n="kpiSafeStatus">All Optimal</span>
+          </div>
+          <div class="kpi-sub">Threshold Monitoring</div>
+        </div>
+      </div>
+
+      <!-- Live Graphical Tanks Grid -->
+      <div class="section-header" style="margin-top: 1.5rem;">
+        <h3 data-i18n="tanksHeader" style="color: #fff; font-size: 1.2rem;">Live Tank Levels & Monitoring</h3>
+      </div>
+      <div class="tanks-grid" id="tanksVisualGrid">
+        <!-- Rendered dynamically by TankRenderer -->
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 2: INFLOWS (DELIVERIES)
+         ====================================================================== -->
+    <section id="section-inflows" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="inflowsTitle">Fuel Deliveries & Inflows</h2>
+          <p data-i18n="inflowsSubtitle">Log fuel deliveries from road tankers and railway cars</p>
+        </div>
+      </div>
+
+      <!-- Inflow Recording Form -->
+      <div class="card">
+        <h3 class="card-title" data-i18n="recordInflowTitle">Register New Inflow / Delivery</h3>
+        <p class="card-subtitle">Enter road tanker delivery details to automatically replenish tank storage inventory</p>
+        
+        <form id="formRecordInflow">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowTankLabel">Target Tank</label>
+              <select class="form-control" id="inflowTank" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowVolumeLabel">Delivered Volume (Liters)</label>
+              <input type="number" class="form-control" id="inflowVolume" min="1" step="any" placeholder="e.g. 10000" required>
+            </div>
+
+            <!-- LPG specific fields -->
+            <div class="form-group inflow-lpg-only" style="display: none;">
+              <label class="form-label" data-i18n="inflowPressureLabel">LPG Tanker Pressure (bar)</label>
+              <input type="number" class="form-control" id="inflowPressure" min="0" max="25" step="0.1" placeholder="e.g. 8.5">
+            </div>
+
+            <div class="form-group inflow-lpg-only" style="display: none;">
+              <label class="form-label" data-i18n="inflowLpgMassLabel">LPG Mass (kg - Optional)</label>
+              <input type="number" class="form-control" id="inflowMass" min="0" step="any" placeholder="e.g. 5400">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowTempLabel">Temperature (°C)</label>
+              <input type="number" class="form-control" id="inflowTemp" step="0.1" value="15.0">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowSupplierLabel">Supplier / Petroleum Refinery</label>
+              <input type="text" class="form-control" id="inflowSupplier" placeholder="e.g. Fergana Refinery (FNQIZ)">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowInvoiceLabel">Invoice / Waybill #</label>
+              <input type="text" class="form-control" id="inflowInvoice" placeholder="e.g. TTN-998240">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowTruckLabel">Tanker Truck License Plate</label>
+              <input type="text" class="form-control" id="inflowTruck" placeholder="e.g. 01 742 AAA">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowOperatorLabel">Receiving Operator</label>
+              <input type="text" class="form-control" id="inflowOperator" placeholder="e.g. Bobur Aliyev" value="Bobur Aliyev">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="inflowDateLabel">Date & Time</label>
+              <input type="datetime-local" class="form-control" id="inflowDate">
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" data-i18n="inflowNotesLabel">Comments / Lab Quality Cert #</label>
+              <input type="text" class="form-control" id="inflowNotes" placeholder="Quality Passport Euro-5, density verification, etc.">
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn-primary">
+              📥 <span data-i18n="btnSubmitInflow">Record Inflow</span>
+            </button>
+            <button type="reset" class="btn btn-outline" data-i18n="btnReset">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Inflow History Table -->
+      <div class="card">
+        <div class="table-toolbar">
+          <div>
+            <h3 class="card-title" data-i18n="inflowHistoryTitle">Delivery History Log</h3>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="search-input-wrap">
+              <input type="text" id="searchInflow" class="form-control" data-i18n-placeholder="searchPlaceholder" placeholder="Search records...">
+            </div>
+            <select id="filterInflowFuel" class="form-control" style="width: auto;">
+              <option value="all" data-i18n="filterAllFuels">All Fuel Types</option>
+              <option value="gasoline" data-i18n="filterGasolineOnly">Gasoline Only</option>
+              <option value="propane" data-i18n="filterPropaneOnly">Propane (LPG) Only</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="window.stationData.exportCSV('inflows')">
+              📥 <span data-i18n="btnExportCSV">Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="colDateTime">Date & Time</th>
+                <th data-i18n="colFuelType">Fuel Type</th>
+                <th data-i18n="colTank">Tank</th>
+                <th data-i18n="colVolume">Volume (L)</th>
+                <th data-i18n="colSupplier">Supplier</th>
+                <th data-i18n="colInvoice">Waybill / Invoice</th>
+                <th data-i18n="colTruck">Tanker Plate</th>
+                <th data-i18n="colActions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inflowsTableBody">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 3: OUTFLOWS (SALES & DISPENSING)
+         ====================================================================== -->
+    <section id="section-outflows" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="outflowsTitle">Fuel Consumption & Sales (Outflows)</h2>
+          <p data-i18n="outflowsSubtitle">Track fuel dispensed through station dispensers and customer pumps</p>
+        </div>
+      </div>
+
+      <!-- Outflow Recording Form -->
+      <div class="card">
+        <h3 class="card-title" data-i18n="recordOutflowTitle">Register Dispenser Sales / Outflow</h3>
+        <p class="card-subtitle">Log pump dispensing by either entering start/end meter totalizers or exact dispensed volume</p>
+
+        <form id="formRecordOutflow">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowTankLabel">Source Tank</label>
+              <select class="form-control" id="outflowTank" required>
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowDispenserLabel">Dispenser / Pump #</label>
+              <input type="text" class="form-control" id="outflowDispenser" placeholder="e.g. Pump #1 or LPG Dispenser 2" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowMeterStartLabel">Start Totalizer (L)</label>
+              <input type="number" class="form-control" id="outflowMeterStart" step="any" placeholder="e.g. 125000">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowMeterEndLabel">End Totalizer (L)</label>
+              <input type="number" class="form-control" id="outflowMeterEnd" step="any" placeholder="e.g. 128500">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowVolumeLabel">Dispensed Volume (Liters)</label>
+              <input type="number" class="form-control" id="outflowVolume" min="0.1" step="any" placeholder="e.g. 3500" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowShiftLabel">Shift</label>
+              <select class="form-control" id="outflowShift">
+                <option value="outflowShiftDay" data-i18n="outflowShiftDay">Shift 1 (Day 08:00 - 20:00)</option>
+                <option value="outflowShiftNight" data-i18n="outflowShiftNight">Shift 2 (Night 20:00 - 08:00)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowOperatorLabel">Cashier / Pump Attendant</label>
+              <input type="text" class="form-control" id="outflowOperator" placeholder="e.g. Sardor Umarov" value="Sardor Umarov">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="outflowDateLabel">Date & Time</label>
+              <input type="datetime-local" class="form-control" id="outflowDate">
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" data-i18n="outflowNotesLabel">Notes / Fleet Client</label>
+              <input type="text" class="form-control" id="outflowNotes" placeholder="Retail customer sales, taxi fleet account, cashless fuel cards...">
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn-primary" style="background-color: #f59e0b;">
+              📤 <span data-i18n="btnSubmitOutflow">Record Outflow</span>
+            </button>
+            <button type="reset" class="btn btn-outline" data-i18n="btnReset">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Outflow History Table -->
+      <div class="card">
+        <div class="table-toolbar">
+          <div>
+            <h3 class="card-title" data-i18n="outflowHistoryTitle">Sales & Dispensed Log</h3>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="search-input-wrap">
+              <input type="text" id="searchOutflow" class="form-control" data-i18n-placeholder="searchPlaceholder" placeholder="Search records...">
+            </div>
+            <select id="filterOutflowFuel" class="form-control" style="width: auto;">
+              <option value="all" data-i18n="filterAllFuels">All Fuel Types</option>
+              <option value="gasoline" data-i18n="filterGasolineOnly">Gasoline Only</option>
+              <option value="propane" data-i18n="filterPropaneOnly">Propane (LPG) Only</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="window.stationData.exportCSV('outflows')">
+              📥 <span data-i18n="btnExportCSV">Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="colDateTime">Date & Time</th>
+                <th data-i18n="colFuelType">Fuel</th>
+                <th data-i18n="colDispenser">Pump #</th>
+                <th data-i18n="colVolume">Dispensed (L)</th>
+                <th data-i18n="colMeters">Meters (Start - End)</th>
+                <th data-i18n="colShift">Shift</th>
+                <th data-i18n="colOperator">Operator</th>
+                <th data-i18n="colActions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="outflowsTableBody">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 4: TANKS & CALIBRATION
+         ====================================================================== -->
+    <section id="section-tanks" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="calibrationTitle">Tank Storage Management & Calibration</h2>
+          <p data-i18n="calibrationSubtitle">Configure storage capacities, safe thresholds, and manual dipstick calibration</p>
+        </div>
+        <div>
+          <button class="btn btn-outline" onclick="window.stationData.resetToDefaults(); window.stationApp.renderAll(); alert('Reset to defaults complete');">
+            🔄 <span data-i18n="resetDefaultTanks">Reset to Factory Presets</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title" data-i18n="editTankTitle">Tank Properties & Calibration</h3>
+        <p class="card-subtitle">Adjust tank parameters after physical gauge/dipstick soundings or modify alarm thresholds</p>
+
+        <div class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
+          <label class="form-label" data-i18n="tankNameLabel">Select Tank to Calibrate</label>
+          <select id="editTankSelect" class="form-control">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <form id="formCalibrateTank">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" data-i18n="tankCapLabel">Total Capacity (L)</label>
+              <input type="number" class="form-control" id="editTankCapacity" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="tankStockLabel">Current Stock Level (L)</label>
+              <input type="number" class="form-control" id="editTankStock" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="tankSafeMinLabel">Safe Minimum Threshold (L)</label>
+              <input type="number" class="form-control" id="editTankSafeMin" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="tankWarningPctLabel">Warning Alert (% of capacity)</label>
+              <input type="number" class="form-control" id="editTankWarningPct" min="5" max="50" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="tankTemp">Temperature (°C)</label>
+              <input type="number" class="form-control" id="editTankTemp" step="0.1">
+            </div>
+
+            <div class="form-group" id="editPressureGroup" style="display: none;">
+              <label class="form-label" data-i18n="tankPressure">LPG Pressure (bar)</label>
+              <input type="number" class="form-control" id="editTankPressure" step="0.1" min="0" max="25">
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary">
+              💾 <span data-i18n="btnUpdateTank">Save Tank Calibration</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 5: ANALYTICS & REPORTS
+         ====================================================================== -->
+    <section id="section-analytics" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="analyticsTitle">Station Analytics & Fuel Balance</h2>
+          <p data-i18n="analyticsSubtitle">Comprehensive trend analysis, inflow vs outflow balance, and forecast</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-outline" onclick="const blob = new Blob([window.stationData.exportToJSON()], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'petroflow_backup.json'; a.click();">
+            💾 <span data-i18n="btnExportJSON">Backup Data (JSON)</span>
+          </button>
+          <label class="btn btn-outline" style="cursor: pointer; margin: 0;">
+            📂 <span data-i18n="btnImportJSON">Restore Backup</span>
+            <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+          </label>
+        </div>
+      </div>
+
+      <!-- Canvas Charts Grid -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="card-title" data-i18n="chartBalanceTitle">7-Day Inflow vs Outflow Comparison</h3>
+          <div class="chart-canvas-container">
+            <canvas id="canvasBalanceChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3 class="card-title" data-i18n="chartDistributionTitle">Stock Distribution by Fuel Grade</h3>
+          <div class="chart-canvas-container">
+            <canvas id="canvasDistributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consumption & Forecast Statistics -->
+      <div class="stats-horizontal-bar">
+        <div class="stat-chip-card">
+          <div class="stat-chip-title" data-i18n="statAvgDailyConsumption">Avg. Daily Outflow</div>
+          <div class="stat-chip-val text-amber" id="statAvgDailyValue">-- L/day</div>
+        </div>
+
+        <div class="stat-chip-card">
+          <div class="stat-chip-title" data-i18n="statDepletionEstimate">Estimated Days Until Depletion</div>
+          <div class="stat-chip-val text-emerald" id="statDaysValue">-- Days</div>
+        </div>
+
+        <div class="stat-chip-card">
+          <div class="stat-chip-title" data-i18n="statTurnoverRate">Fuel Turnover Cycle</div>
+          <div class="stat-chip-val" id="statTurnoverValue">-- mo</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 6: PYTHON ENGINE
+         ====================================================================== -->
+    <section id="section-python" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="pythonTitle">Python Station Analytics & Audit Engine</h2>
+          <p data-i18n="pythonSubtitle">Run Python in the browser to compute statistical trends, linear depletion models, and audit logs</p>
+        </div>
+        <div>
+          <span class="badge badge-info" id="pythonStatusBadge">Python Runtime Ready</span>
+        </div>
+      </div>
+
+      <div class="python-panel">
+        <!-- Python Code Editor / Viewer -->
+        <div class="code-editor-wrap">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-weight: 600; font-size: 0.85rem; color: var(--text-muted);" data-i18n="pythonCodeTitle">
+              Python Algorithm (Click to View/Edit):
+            </span>
+            <button class="btn btn-success btn-xs" onclick="window.stationApp.python.runPython(document.getElementById('pythonCodeEditor').value)">
+              ▶ <span data-i18n="pythonRunBtn">Execute Python Audit</span>
+            </button>
+          </div>
+          <textarea id="pythonCodeEditor" class="code-editor" spellcheck="false"></textarea>
+        </div>
+
+        <!-- Terminal Output Window -->
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span style="font-size: 0.75rem; color: #94a3b8; font-family: var(--font-mono);">
+              python station_audit.py (stdout)
+            </span>
+            <span></span>
+          </div>
+          <div class="terminal-output" id="pythonOutput">
+            Ready to execute Python audit script. Click 'Execute Python Audit' to run.
+          </div>
+        </div>
+      </div>
+
+      <!-- Standalone Python Info Card -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <h3 class="card-title">🐍 Standalone Python CLI & Automated Gmail Sender</h3>
+        <p class="card-subtitle" data-i18n="pythonStandaloneInfo">
+          Prefer running outside the browser? Use our standalone Python utility with native Gmail SMTP dispatcher.
+        </p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="fuel_station_manager.py" download="fuel_station_manager.py" class="btn btn-outline btn-sm">
+            📄 <span data-i18n="pythonDownloadScript">Download fuel_station_manager.py</span>
+          </a>
+          <a href="gmail_notifier.py" download="gmail_notifier.py" class="btn btn-outline btn-sm">
+            ✉️ Download gmail_notifier.py
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 7: GMAIL INTEGRATION
+         ====================================================================== -->
+    <section id="section-gmail" class="app-section">
+      <div class="section-header">
+        <div>
+          <h2 data-i18n="gmailTitle">Gmail Integration & Automated Reporting</h2>
+          <p data-i18n="gmailSubtitle">Generate formatted shift reports, stock balance sheets, and instant low-fuel alerts</p>
+        </div>
+      </div>
+
+      <div class="gmail-layout">
+        <!-- Dispatch & Settings Card -->
+        <div>
+          <!-- Hero 1-Click Action -->
+          <div class="card gmail-card-hero" style="margin-bottom: 1.25rem;">
+            <h3 class="card-title" data-i18n="gmailDirectAction">Launch Gmail Web Composer</h3>
+            <p class="card-subtitle" data-i18n="gmailDirectDesc">
+              Click below to immediately open Gmail in your browser with a perfectly formatted station report ready to send to management.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <button class="btn btn-primary" onclick="window.stationApp.gmail.openGmailWeb()" style="padding: 0.85rem; font-size: 1rem;">
+                🚀 <span data-i18n="btnOpenGmailWeb">Open in Gmail Web (1-Click)</span>
+              </button>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-outline btn-sm" onclick="window.stationApp.gmail.openMailto()">
+                  📧 <span data-i18n="btnSendMailto">Default Email Client</span>
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="window.stationApp.gmail.copyReportToClipboard()">
+                  📋 <span data-i18n="btnCopyReport">Copy to Clipboard</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Settings Form -->
+          <div class="card">
+            <h3 class="card-title" data-i18n="gmailSettingsTitle">Email Dispatch Settings</h3>
+            <form id="formGmailSettings" style="margin-top: 1rem;">
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <label class="form-label" data-i18n="gmailReportTypeLabel">Report Format</label>
+                <select class="form-control" id="gmailReportType">
+                  <option value="shift" data-i18n="reportTypeShift">Current Shift Summary (Deliveries + Sales)</option>
+                  <option value="stock" data-i18n="reportTypeStock">Stock Level Status & Tank Volumes</option>
+                  <option value="emergency" data-i18n="reportTypeEmergency">URGENT: Low Stock Alert Warning</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <label class="form-label" data-i18n="gmailRecipientLabel">Primary Recipient (Manager / Head Office)</label>
+                <input type="email" class="form-control" id="gmailRecipient" placeholder="manager@fillingstation.com">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <label class="form-label" data-i18n="gmailCcLabel">CC / Supervisor Email</label>
+                <input type="email" class="form-control" id="gmailCc" placeholder="supervisor@fillingstation.com">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" data-i18n="gmailSubjectLabel">Email Subject Template</label>
+                <input type="text" class="form-control" id="gmailSubject">
+              </div>
+
+              <button type="submit" class="btn btn-outline btn-sm">
+                💾 <span data-i18n="btnSave">Save Settings</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Live Email Preview Box -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h3 class="card-title" data-i18n="reportPreviewTitle">Live Email Content Preview:</h3>
+            <button class="btn btn-outline btn-xs" onclick="window.stationApp.gmail.updateLivePreview()">🔄 Refresh</button>
+          </div>
+          <textarea id="gmailLivePreview" class="preview-textarea" readonly></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       Tank Calibration Modal
+       ======================================================================== -->
+  <div class="modal" id="modalCalibration">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="editTankTitle">Tank Properties & Calibration</h3>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formCalibrateModal" onsubmit="event.preventDefault(); document.getElementById('formCalibrateTank').dispatchEvent(new Event('submit'));">
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
+            Use the calibration settings under the Tanks menu or quick edit current sounding levels.
+          </p>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="window.stationApp.closeModal('modalCalibration')" data-i18n="btnClose">Close</button>
+            <button type="button" class="btn btn-primary" onclick="window.stationApp.closeModal('modalCalibration'); window.stationApp.navigateTo('tanks');" data-i18n="btnCalibrate">Go to Calibration</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>PetroFlow Station Monitoring System &bull; Multilingual Fuel & Gas Accounting &bull; JavaScript, CSS, HTML & Python</p>
+  </footer>
+
+  <!-- Core JavaScript Modules -->
+  <script src="translations.js"></script>
+  <script src="data.js"></script>
+  <script src="tanks.js"></script>
+  <script src="charts.js"></script>
+  <script src="gmail.js"></script>
+  <script src="python-runner.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
